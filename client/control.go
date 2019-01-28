@@ -16,6 +16,7 @@ package client
 
 import (
 	"fmt"
+	"github.com/rodaine/table"
 	"io"
 	"runtime/debug"
 	"sync"
@@ -31,6 +32,10 @@ import (
 	"github.com/fatedier/golib/control/shutdown"
 	"github.com/fatedier/golib/crypto"
 	fmux "github.com/hashicorp/yamux"
+)
+
+var (
+	res StatusResp
 )
 
 type Control struct {
@@ -141,6 +146,78 @@ func (ctl *Control) HandleNewProxyResp(inMsg *msg.NewProxyResp) {
 		ctl.Warn("[%s] start error: %v", inMsg.ProxyName, err)
 	} else {
 		ctl.Info("[%s] start proxy success", inMsg.ProxyName)
+		ps := ctl.pm.GetAllProxyStatus()
+		for _, status := range ps {
+			switch status.Type {
+			case "tcp":
+				res.Tcp = append(res.Tcp, NewProxyStatusResp(status))
+			case "udp":
+				res.Udp = append(res.Udp, NewProxyStatusResp(status))
+			case "http":
+				res.Http = append(res.Http, NewProxyStatusResp(status))
+			case "https":
+				res.Https = append(res.Https, NewProxyStatusResp(status))
+			case "stcp":
+				res.Stcp = append(res.Stcp, NewProxyStatusResp(status))
+			case "xtcp":
+				res.Xtcp = append(res.Xtcp, NewProxyStatusResp(status))
+			}
+		}
+		fmt.Println("Proxy Status...")
+		if len(res.Tcp) > 0 {
+			fmt.Printf("TCP")
+			tbl := table.New("Name", "Status", "LocalAddr", "Plugin", "RemoteAddr", "Error")
+			for _, ps := range res.Tcp {
+				tbl.AddRow(ps.Name, ps.Status, ps.LocalAddr, ps.Plugin, ps.RemoteAddr, ps.Err)
+			}
+			tbl.Print()
+			fmt.Println("")
+		}
+		if len(res.Udp) > 0 {
+			fmt.Printf("UDP")
+			tbl := table.New("Name", "Status", "LocalAddr", "Plugin", "RemoteAddr", "Error")
+			for _, ps := range res.Udp {
+				tbl.AddRow(ps.Name, ps.Status, ps.LocalAddr, ps.Plugin, ps.RemoteAddr, ps.Err)
+			}
+			tbl.Print()
+			fmt.Println("")
+		}
+		if len(res.Http) > 0 {
+			fmt.Printf("HTTP")
+			tbl := table.New("Name", "Status", "LocalAddr", "Plugin", "RemoteAddr", "Error")
+			for _, ps := range res.Http {
+				tbl.AddRow(ps.Name, ps.Status, ps.LocalAddr, ps.Plugin, ps.RemoteAddr, ps.Err)
+			}
+			tbl.Print()
+			fmt.Println("")
+		}
+		if len(res.Https) > 0 {
+			fmt.Printf("HTTPS")
+			tbl := table.New("Name", "Status", "LocalAddr", "Plugin", "RemoteAddr", "Error")
+			for _, ps := range res.Https {
+				tbl.AddRow(ps.Name, ps.Status, ps.LocalAddr, ps.Plugin, ps.RemoteAddr, ps.Err)
+			}
+			tbl.Print()
+			fmt.Println("")
+		}
+		if len(res.Stcp) > 0 {
+			fmt.Printf("STCP")
+			tbl := table.New("Name", "Status", "LocalAddr", "Plugin", "RemoteAddr", "Error")
+			for _, ps := range res.Stcp {
+				tbl.AddRow(ps.Name, ps.Status, ps.LocalAddr, ps.Plugin, ps.RemoteAddr, ps.Err)
+			}
+			tbl.Print()
+			fmt.Println("")
+		}
+		if len(res.Xtcp) > 0 {
+			fmt.Printf("XTCP")
+			tbl := table.New("Name", "Status", "LocalAddr", "Plugin", "RemoteAddr", "Error")
+			for _, ps := range res.Xtcp {
+				tbl.AddRow(ps.Name, ps.Status, ps.LocalAddr, ps.Plugin, ps.RemoteAddr, ps.Err)
+			}
+			tbl.Print()
+			fmt.Println("")
+		}
 	}
 }
 
